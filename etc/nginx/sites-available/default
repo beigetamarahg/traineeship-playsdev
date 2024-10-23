@@ -1,0 +1,198 @@
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# https://www.nginx.com/resources/wiki/start/
+# https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
+# https://wiki.debian.org/Nginx/DirectoryStructure
+#
+# In most cases, administrators will remove this file from sites-enabled/ and
+# leave it as reference inside of sites-available where it will continue to be
+# updated by the nginx packaging team.
+#
+# This file will automatically load configuration files provided by other
+# applications, such as Drupal or Wordpress. These applications will be made
+# available underneath a path with that package name, such as /drupal8.
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+# Default server configuration
+#
+
+map $arg_rotate $rotate_volume {
+  default 180;
+  90 90;
+  180 180;
+  270 270;
+}
+
+
+# server {
+#   listen 80 default_server;
+#   listen [::]:80 default_server;
+#
+#   root /var/www/html;
+#
+#   index index.nginx-debian.html;
+#
+#   location / {
+#     try_files $uri $uri/ =404;
+#   }
+#
+#   location /redblue {
+#     proxy_pass http://backend;
+#     proxy_set_header Host $host;
+#     proxy_set_header X-Real-IP $remote_addr;
+#     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#     proxy_set_header X-Forwarded-Proto $scheme;
+#   }
+#
+#   location /image1 {
+#     rewrite ^/image1(.*) /images/image1.jpg last;	
+#   }
+#
+# # location /images/image1.jpg {
+# #   image_filter rotate 270;
+# #   image_filter_buffer 20M;
+# #   image_filter_jpeg_quality 85;
+# #   }
+#
+#   location ~* \.jpg$ {
+#     image_filter rotate $rotate_volume;
+#     image_filter_buffer 20M;
+#     image_filter_jpeg_quality 85;
+#   }
+#
+#
+#   location /image2 {
+#     rewrite ^/image2(.*) /images/image2.png last; 
+#   }
+
+
+# pass PHP scripts to FastCGI server
+#
+#location ~ \.php$ {
+#	include snippets/fastcgi-php.conf;
+#
+#	# With php-fpm (or other unix sockets):
+#	fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+#	# With php-cgi (or other tcp sockets):
+#	fastcgi_pass 127.0.0.1:9000;
+#}
+
+# deny access to .htaccess files, if Apache's document root
+# concurs with nginx's one
+#
+#location ~ /\.ht {
+#	deny all;
+#}
+# }
+
+
+# Virtual Host configuration for example.com
+#
+# You can move that to a different file under sites-available/ and symlink that
+# to sites-enabled/ to enable it.
+#
+#server {
+#	listen 80;
+#	listen [::]:80;
+#
+#	server_name example.com;
+#
+#	root /var/www/example.com;
+#	index index.html;
+#
+#	location / {
+#		try_files $uri $uri/ =404;
+#	}
+#}
+
+
+
+server {
+
+  root /var/www/html;
+
+# Add index.php to the list if you are using PHP
+  index index.nginx-debian.html;
+
+  location / {
+    try_files $uri $uri/ =404;
+  }
+
+  location /secondpage {
+    try_files /secondpage.html =404;
+  }
+
+  location /music {
+    try_files /music.mp3 =404;
+    add_header Content-Disposition 'attachment; filename="music.mp3"';
+    add_header Content-Type audio/mpeg;
+  }
+
+  location /info.php {
+    proxy_pass http://localhost:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location /redblue {
+    proxy_pass https://backend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+
+  location /secondserver {
+    proxy_pass https://www.wikipedia.org/;
+    # proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location /image1 {
+    rewrite ^/image1(.*) /images/image1.jpg last;	
+  }
+
+  location ~* \.jpg$ {
+    image_filter rotate $rotate_volume;
+    image_filter_buffer 20M;
+    image_filter_jpeg_quality 85;
+  }
+
+
+  location /image2 {
+    rewrite ^/image2(.*) /images/image2.png last; 
+  }
+
+  server_name traine5.ddns.net;
+
+    listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/traine5.ddns.net/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/traine5.ddns.net/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+
+server {
+  if ($host = traine5.ddns.net) {
+    return 301 https://$host$request_uri;
+  } # managed by Certbot
+
+
+  listen 80 ;
+  listen [::]:80 ;
+  server_name traine5.ddns.net;
+  return 404; # managed by Certbot
+
+
+}
